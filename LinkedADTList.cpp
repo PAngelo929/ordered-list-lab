@@ -1,173 +1,209 @@
-#ifndef LINKED_ADT_LIST_H
-#define LINKED_ADT_LIST_H
-#include <stdexcept>
-/**
- * A linked list implementation of an Abstract Data Type (ADT) List.
- *
- * This class provides a linked list-based implementation of a list ADT.
- * It supports operations such as adding, removing, and finding items, as well as
- * iterating through the list.
- *
- * @param DataType The type of data stored in the list.
- */
+#include <iostream>
+#include "LinkedADTList.h"
+
+// Constructor: Initializes an empty linked list
 template <class DataType>
-class LinkedADTList {
-private:
-    /**
-     * Node structure for storing data and the next pointer.
-     */
-    struct Node {
-        DataType value;
-        Node* next;
-    };
+LinkedADTList<DataType>::LinkedADTList() {
+   head = nullptr; // Set head to nullptr (empty list)
+   size = 0; // Initialize size to 0
+}
 
-    Node* head; // Pointer to the first node in the list.
-    int size;   // Tracks the number of elements in the list.
+// Destructor: Clears the list to free memory
+template <class DataType>
+LinkedADTList<DataType>::~LinkedADTList() {
+   clear(); // Call the clear function to delete all nodes
+}
 
-    /**
-     * Copies another list's contents into this one.
-     *
-     * @param other The list to be copied.
-     */
-    void deepCopy(const LinkedADTList& other);
+// Copy Constructor: Creates a deep copy of another list
+template <class DataType>
+LinkedADTList<DataType>::LinkedADTList(const LinkedADTList& other) {
+   head = nullptr; // Initialize head to nullptr
+   size = 0; // Initialize size to 0
+   deepCopy(other); // Perform a deep copy of the other list
+}
 
-    /**
-     * Deallocates memory and resets the list.
-     */
-    void clear();
+// Assignment Operator: Assigns the contents of another list to this list
+template <class DataType>
+LinkedADTList<DataType>& LinkedADTList<DataType>::operator=(const LinkedADTList& other) {
+   if (this != &other) { // Check for self-assignment
+       clear(); // Clear the current list
+       deepCopy(other); // Perform a deep copy of the other list
+   }
+   return *this; // Return the current object for chaining
+}
 
-public:
-    /**
-     * Constructs an empty linked list.
-     */
-    LinkedADTList();
+// Get length: Returns the number of items in the list
+template <class DataType>
+int LinkedADTList<DataType>::getLength() const {
+   return size; // Return the size of the list
+}
 
-    /**
-     * Destroys the list and releases allocated memory.
-     */
-    ~LinkedADTList();
+// Insert item to the list
+template <class DataType>
+void LinkedADTList<DataType>::putItem(const DataType& item) {
+   Node *temp = new Node; // Create a new node
+   temp->value = item; // Set the value of the new node
+   if (head == nullptr) {
+      head = temp;
+      size++;
+      return;
+   }
+   Node* prev = nullptr;
+   Node* curr = head;
+   while (curr != nullptr) {
+      if (curr->value < item) {
+         prev = curr;
+         curr = curr->next;
+      } else {
+         break;
+      }
+   }
+   if (prev == nullptr) {
+      temp->next = curr;
+      head = temp;
+   } else {
+      temp->next = curr;
+      prev->next = temp;
+   }
+   size++;
+}
 
-    /**
-     * Constructs a copy of another linked list.
-     *
-     * @param other The list to duplicate.
-     */
-    LinkedADTList(const LinkedADTList& other);
 
-    /**
-     * Assigns another list's contents to this one.
-     *
-     * @param other The list to assign.
-     * @return A reference to this list.
-     */
-    LinkedADTList& operator=(const LinkedADTList& other);
+// Retrieve an item: Searches for an item in the list and returns it if found
+template <class DataType>
+bool LinkedADTList<DataType>::getItem(const DataType& item, DataType& found_item) const {
+   Node* current = head; // Start at the head of the list
+   while (current != nullptr) { // Traverse the list
+       if (current->value == item) { // Check if the current node's value matches the item
+           found_item = current->value; // Return the found item
+           return true; // Indicate success
+       }
+       current = current->next; // Move to the next node
+   }
+   return false; // Indicate the item was not found
+}
 
-    /**
-     * Retrieves the number of elements in the list.
-     *
-     * @return The current size of the list.
-     */
-    int getLength() const;
+// Make list empty: Clears the list by deleting all nodes
+template <class DataType>
+void LinkedADTList<DataType>::makeEmpty() {
+   clear(); // Call the clear function to delete all nodes
+}
 
-    /**
-     * Adds an item to the list.
-     *
-     * @param item The value to insert.
-     */
-    void putItem(const DataType& item);
+// Delete an item: Removes an item from the list if it exists
+template <class DataType>
+bool LinkedADTList<DataType>::deleteItem(const DataType& item) {
+   Node *previous = nullptr; // Pointer to the previous node
+   Node *current = head; // Pointer to the current node
+   while (current != nullptr && current->value != item) { // Traverse the list
+       previous = current; // Update the previous node
+       current = current->next; // Move to the next node
+   }
+   if (current == nullptr) { // If the item was not found.
+       return false; // Indicate failure
+   }
+   if (previous == nullptr) { // If the item is at the head
+       head = head->next; // Update head to skip the current node.
+   } else { // If the item is in the middle or end
+       previous->next = current->next; // Skip the current node
+   }
+   delete current; // Free the memory of the deleted node
+   size--; // Decrement the size of the list
+   return true; // Indicate success
+}
 
-    /**
-     * Searches for an item in the list.
-     *
-     * @param item The value to find.
-     * @param found_item Stores the located item if found.
-     * @return True if found, otherwise false.
-     */
-    bool getItem(const DataType& item, DataType& found_item) const;
+// Check if list is full: Always returns false for a linked list
+template <class DataType>
+bool LinkedADTList<DataType>::isFull() const {
+   return false; // Linked lists are never full
+}
 
-    /**
-     * Empties the list, removing all elements.
-     */
-    void makeEmpty();
+// Deep copy function: Creates a deep copy of another list
+template <class DataType>
+void LinkedADTList<DataType>::deepCopy(const LinkedADTList& other) {
+   clear(); // Clear the current list
 
-    /**
-     * Removes a specified item from the list.
-     *
-     * @param item The value to delete.
-     * @return True if deleted, otherwise false.
-     */
-    bool deleteItem(const DataType& item);
+   if (other.head == nullptr) { // If the other list is empty
+       head = nullptr; // Set head to nullptr
+       size = 0; // Set size to 0
+       return;
+   }
 
-    /**
-     * Determines if the list is full.
-     *
-     * @return Always false since a linked list is dynamically allocated.
-     */
-    bool isFull() const;
+   head = new Node; // Create a new head node
+   Node* curr = head; // Pointer to the current node in the new list
+   Node* other_curr = other.head; // Pointer to the current node in the other list
 
-    /**
-     * Iterator class for traversing the list.
-     */
-    class Iterator {
-    public:
-        /**
-         * Constructs an iterator for the list.
-         *
-         * @param myList The list being traversed.
-         * @param current Pointer to the current node.
-         */
-        Iterator(LinkedADTList* myList, Node* current);
+   curr->value = other_curr->value; // Copy the value from the other list
+   curr->next = nullptr; // Set the next pointer to nullptr
+   other_curr = other_curr->next; // Move to the next node in the other list
 
-        /**
-         * Accesses the value at the iterator's current position.
-         *
-         * @return Reference to the stored data.
-         */
-        DataType& operator*() const;
+   while (other_curr != nullptr) { // Traverse the other list
+       curr->next = new Node; // Create a new node in the new list.
+       curr = curr->next; // Move to the new node
+       curr->value = other_curr->value; // Copy the value from the other list
+       curr->next = nullptr; // Set the next pointer to nullptr
+       other_curr = other_curr->next; // Move to the next node in the other list
+   }
 
-        /**
-         * Moves the iterator to the next node.
-         *
-         * @return Reference to the updated iterator.
-         */
-        Iterator& operator++();
+   size = other.size; // Copy the size of the other list
+}
 
-        /**
-         * Compares two iterators for equality.
-         *
-         * @param other The iterator to compare against.
-         * @return True if both point to the same position, otherwise false.
-         */
-        bool operator==(const Iterator& other) const;
+// Clear the list: Deletes all nodes in the list
+template <class DataType>
+void LinkedADTList<DataType>::clear() {
+   while (head != nullptr) { // Traverse the list
+       Node* temp = head; // Store the current head node
+       head = head->next; // Move head to the next node
+       delete temp; // Delete the stored node
+   }
+   size = 0; // Reset the size to 0
+}
 
-        /**
-         * Checks if two iterators are different.
-         *
-         * @param other The iterator to compare against.
-         * @return True if they differ, otherwise false.
-         */
-        bool operator!=(const Iterator& other) const;
+// Iterator Constructor: Initializes an iterator with a list and a node
+template <class DataType>
+LinkedADTList<DataType>::Iterator::Iterator(LinkedADTList* myList, Node* current) {
+   this->myList = myList; // Set the list pointer
+   this->current = current; // Set the current node pointer
+}
 
-    private:
-        LinkedADTList* myList; // Pointer to the linked list.
-        Node* current;         // Pointer to the current node.
-    };
+// Iterator Dereference Operator: Returns the value of the current node
+template <class DataType>
+DataType& LinkedADTList<DataType>::Iterator::operator*() const {
+   if (current == nullptr) { // Check if the iterator is at the end
+       throw std::out_of_range("Iterator is at the end of the list.");
+   }
+   return current->value; // Return the value of the current node
+}
 
-    /**
-     * Provides an iterator to the start of the list.
-     *
-     * @return Iterator pointing to the first element...
-     */
-    Iterator begin();
+// Iterator Pre-increment Operator: Moves the iterator to the next node
+template <class DataType>
+typename LinkedADTList<DataType>::Iterator& LinkedADTList<DataType>::Iterator::operator++() {
+   if (current == nullptr) { // Check if the iterator is at the end
+       throw std::out_of_range("Iterator is at the end of the list.");
+   }
+   current = current->next; // Move to the next node
+   return *this; // Return the updated iterator
+}
 
-    /**
-     * Provides an iterator to the end of the list.
-     *
-     * @return Iterator pointing past the last element.
-     */
-    Iterator end();
-};
+// Iterator Equality Comparison: Checks if two iterators are equal
+template <class DataType>
+bool LinkedADTList<DataType>::Iterator::operator==(const Iterator& other) const {
+   return (current == other.current); // Compare the current nodes
+}
 
-#include "LinkedADTList.cpp"
+// Iterator Inequality Comparison: Checks if two iterators are not equal
+template <class DataType>
+bool LinkedADTList<DataType>::Iterator::operator!=(const Iterator& other) const {
+   return !(*this == other); // Use the equality operator for comparison
+}
 
-#endif // LINKED_ADT_LIST_H
+// Begin: Returns an iterator pointing to the first node in the list
+template <class DataType>
+typename LinkedADTList<DataType>::Iterator LinkedADTList<DataType>::begin() {
+   return Iterator(this, head); // Create and return an iterator at the head
+}
+
+// End: Returns an iterator pointing to one past the last node in the list
+template <class DataType>
+typename LinkedADTList<DataType>::Iterator LinkedADTList<DataType>::end() {
+   return Iterator(this, nullptr); // Create and return an iterator at the end
+}
